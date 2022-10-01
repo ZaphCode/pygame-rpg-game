@@ -16,16 +16,18 @@ class Attack(pygame.sprite.Sprite):
         self.image.fill("Red")
         self.image.set_alpha(0)
         if debugger.active: self.image.set_alpha(100)
+        self.rect = self.image.get_rect(center = self.player.rect.center)
 
-        if "up" in player.status:
-            self.rect = self.image.get_rect(midtop = self.player.rect.center - pygame.math.Vector2(0, 30))
-        elif "down" in player.status:
-            self.rect = self.image.get_rect(midbottom = self.player.rect.center - pygame.math.Vector2(0, -30))
-        elif "left" in player.status:
-            self.rect = self.image.get_rect(midleft = self.player.rect.center - pygame.math.Vector2(30, 0))
-        elif "right" in player.status:
-            self.rect = self.image.get_rect(midright = self.player.rect.center - pygame.math.Vector2(-30, 0))    
+            
 
     def update(self):
+        if "up" in self.player.status:
+            self.rect = self.image.get_rect(midtop = self.player.rect.center - pygame.math.Vector2(0, 30))
+        elif "down" in self.player.status:
+            self.rect = self.image.get_rect(midbottom = self.player.rect.center - pygame.math.Vector2(0, -30))
+        elif "left" in self.player.status:
+            self.rect = self.image.get_rect(midleft = self.player.rect.center - pygame.math.Vector2(30, 0))
+        elif "right" in self.player.status:
+            self.rect = self.image.get_rect(midright = self.player.rect.center - pygame.math.Vector2(-30, 0))
         if not self.player.is_attacking:
             self.kill()

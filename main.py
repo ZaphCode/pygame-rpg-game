@@ -23,12 +23,12 @@ class Game:
 
             if self.status == "main_menu":
                 self.screen.fill("#1D1815")
-                self.main_menu.run()
+                self.main_menu.render()
             elif self.status == "playing":
-                self.screen.fill("#1D1815")
+                self.screen.fill("#25131a")
                 self.level.run()
             elif self.status == "paused":
-                self.pause_modal.run()
+                self.pause_modal.render()
             elif self.status == "exit":
                 self.exit()
 
@@ -46,6 +46,9 @@ class Game:
                 if event.key == pygame.K_ESCAPE: 
                     if self.status == "playing": self.set_game_status("paused")
                     elif self.status == "paused": self.set_game_status("playing")
+
+                if event.key == pygame.K_SPACE and self.status == "main_menu":
+                    self.set_game_status("playing")
 
     def set_game_status(self, status: str):
         self.status = status
