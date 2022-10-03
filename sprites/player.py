@@ -11,6 +11,7 @@ class Player(pygame.sprite.Sprite):
         position: Tuple[int, int], 
         groups: List[pygame.sprite.Group],
         obstacle_sprites_group: pygame.sprite.Group,
+        items_sprite_group: pygame.sprite.Group,
         create_attack,
         disabled: bool = False,
         scale: float = 2.8
@@ -20,10 +21,12 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(midbottom = position)
         self.hitbox = self.rect.inflate(-6, -16)
         self.obstacle_sprites_group = obstacle_sprites_group
+        self.items_sprite_group = items_sprite_group
         self.create_attack = create_attack
         self.disabled = disabled
         # Movement
-        self.speed: int = 5
+        self.max_speed: int = PLAYER_SPEED
+        self.speed: int = PLAYER_SPEED
         self.direction = pygame.math.Vector2()
         # Animation
         self.frame_index: int = 0
@@ -48,6 +51,12 @@ class Player(pygame.sprite.Sprite):
         self.shield_available: bool = True
         self.shield_time = None
         self.shield_again_cooldown: int = 400
+        # Intems
+        self.crystals: int = 0
+        self.has_silver_key: bool = False
+        self.has_golden_key: bool = False
+        self.is_object_interacting = False
+        self.object_interacting_time = None
 
     def load_animations(self, scale) -> None:
         for animation in self.animations.keys():
@@ -81,7 +90,7 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.direction.x = 0    
         
-        if keys[pygame.K_SPACE] and self.attack_available and not self.is_shielded:
+        if keys[pygame.K_SPACE] and self.attack_available and not self.is_shielded and not self.is_object_interacting:
             self.is_attacking = True
             self.frame_index = 0
             self.attack_available = False
@@ -108,12 +117,12 @@ class Player(pygame.sprite.Sprite):
 
     def handle_status(self):
         if self.is_attacking:
-            self.speed = 2
+            self.speed = self.max_speed / 2
             if not "attack" in self.status:
                 self.status = self.last_heanding + "_attack"
         else: 
-            self.speed = 5
-            self.status = self.status.split("_")[0]
+            self.speed = self.max_speed 
+            self.status = self.last_heanding
 
         if self.is_shielded: 
             self.direction.x = 0
@@ -149,6 +158,10 @@ class Player(pygame.sprite.Sprite):
             if current_time - self.attack_time >= self.attacking_cooldown:
                 self.is_attacking = False
 
+        if self.is_object_interacting:
+            if current_time - self.object_interacting_time >= 100:
+                self.is_object_interacting = False
+
         if not self.attack_available:
             if current_time - self.attack_time >= self.attack_again_cooldown:
                 self.attack_available = True
@@ -157,12 +170,18 @@ class Player(pygame.sprite.Sprite):
             if current_time - self.shield_time >= self.shield_again_cooldown:
                 self.shield_available = True
 
+    def handle_item_touch(self) -> None:
+        for item in self.items_sprite_group:
+            if item.interact_ratio.colliderect(self.hitbox):
+                item.on_touched(self)       
+
     def update(self) -> None:   
         if not self.disabled:
             self.handle_inputs()
             self.handle_status()
             self.cooldowns() 
             self.animate()
+            self.handle_item_touch()
             self.move(self.speed)
         else:
             self.animate()
