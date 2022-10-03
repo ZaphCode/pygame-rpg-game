@@ -1,42 +1,35 @@
 from typing import List, Tuple
 import pygame
 from lib.files import import_folder
-from pygame.transform import scale as _scale
-from pygame.image import load
 from settings import *
+from sprites.entity import Entity
 
-class Player(pygame.sprite.Sprite):
+class Player(Entity):
     def __init__(
         self, 
         position: Tuple[int, int], 
         groups: List[pygame.sprite.Group],
         obstacle_sprites_group: pygame.sprite.Group,
         items_sprite_group: pygame.sprite.Group,
-        create_attack,
+        create_attack_function,
         disabled: bool = False,
         scale: float = 2.8
     ) -> None:
-        super().__init__(groups)
-        self.image = _scale(load("assets/player/down/char_run_down_1.png").convert_alpha(), (38, 32))
+        super().__init__(groups, obstacle_sprites_group)
+        # Main properties
+        self.image = pygame.Surface((32, 32))
         self.rect = self.image.get_rect(midbottom = position)
         self.hitbox = self.rect.inflate(-6, -16)
+        # Level utils
         self.obstacle_sprites_group = obstacle_sprites_group
         self.items_sprite_group = items_sprite_group
-        self.create_attack = create_attack
-        self.disabled = disabled
+        self.create_attack_function = create_attack_function
         # Movement
         self.max_speed: int = PLAYER_SPEED
         self.speed: int = PLAYER_SPEED
-        self.direction = pygame.math.Vector2()
+        self.disabled = disabled
         # Animation
         self.frame_index: int = 0
-        self.animations: dict = {
-            "up": [], "down": [], "right": [], "left": [],
-            "up_idle": [], "down_idle": [], "right_idle": [], "left_idle": [],
-            "up_attack": [], "down_attack": [], "right_attack": [], "left_attack": [],
-            "up_shielded": [], "down_shielded": [], "right_shielded": [], "left_shielded": [],
-
-        }
         self.status: str = "down_idle"
         self.last_heanding: str = "down"
         self.load_animations(scale)
@@ -59,6 +52,13 @@ class Player(pygame.sprite.Sprite):
         self.object_interacting_time = None
 
     def load_animations(self, scale) -> None:
+        self.animations: dict = {
+            "up": [], "down": [], "right": [], "left": [],
+            "up_idle": [], "down_idle": [], "right_idle": [], "left_idle": [],
+            "up_attack": [], "down_attack": [], "right_attack": [], "left_attack": [],
+            "up_shielded": [], "down_shielded": [], "right_shielded": [], "left_shielded": [],
+        }
+
         for animation in self.animations.keys():
             self.animations[animation] = import_folder(f"assets/player/{animation}", scale)
 
@@ -95,7 +95,7 @@ class Player(pygame.sprite.Sprite):
             self.frame_index = 0
             self.attack_available = False
             self.attack_time = pygame.time.get_ticks()
-            self.create_attack()
+            self.create_attack_function()
 
         if keys[pygame.K_LCTRL]:
             if not self.is_attacking and self.shield_available:
@@ -104,16 +104,6 @@ class Player(pygame.sprite.Sprite):
                 self.shield_time = pygame.time.get_ticks()
         else:
             self.is_shielded = False
-            
-    def move(self, speed: int) -> None:
-        if self.direction.magnitude() != 0:
-            self.direction = self.direction.normalize()
-
-        self.hitbox.x += self.direction.x * speed
-        self.handle_collitions("horizontal")
-        self.hitbox.y += self.direction.y * speed
-        self.handle_collitions("vertical")
-        self.rect.center = self.hitbox.center
 
     def handle_status(self):
         if self.is_attacking:
@@ -133,24 +123,7 @@ class Player(pygame.sprite.Sprite):
         if self.direction.x == 0 and self.direction.y == 0: #idle
             if not "idle" in self.status and not self.is_shielded and not self.is_attacking: 
                 self.status = self.last_heanding + "_idle"
-             
-    def handle_collitions(self, direction: str) -> None:
-        if direction == "horizontal":
-            for sprite in self.obstacle_sprites_group:
-                if sprite.hitbox.colliderect(self.hitbox):
-                    if self.direction.x > 0: # Right ->
-                        self.hitbox.right = sprite.hitbox.left
-                    if self.direction.x < 0: # Left <-
-                        self.hitbox.left = sprite.hitbox.right
-
-        if direction == "vertical":
-            for sprite in self.obstacle_sprites_group:
-                if sprite.hitbox.colliderect(self.hitbox):
-                    if self.direction.y > 0: # Down
-                        self.hitbox.bottom = sprite.hitbox.top
-                    if self.direction.y < 0: # Top
-                        self.hitbox.top = sprite.hitbox.bottom
-    
+               
     def cooldowns(self) -> None:
         current_time = pygame.time.get_ticks()
 
