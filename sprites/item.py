@@ -10,6 +10,7 @@ class Item(pygame.sprite.Sprite):
         groups: List[pygame.sprite.Group], 
         scale: float = 2, 
         animation_speed: float = 0.1,
+        kill_on_touch: bool = True
     ) -> None:
         super().__init__(groups)
         self.type = type
@@ -21,15 +22,17 @@ class Item(pygame.sprite.Sprite):
         if self.has_touched_animation: 
             self.touched_frames = import_folder(f"assets/{type}/touched", scale)
         self.animation_speed = animation_speed
+        self.kill_on_touch = kill_on_touch
         self.touched: bool = False
         self.frame_index = 0
+        self.static = False
         self.image = self.default_frames[0]
         self.rect = self.image.get_rect(topleft = position)
         self.hitbox = self.rect.inflate(0, 0)
         self.interact_ratio = self.rect.inflate(0, 0)
         
     def on_touched(self, player: Player):
-        if not self.touched:
+        if not self.touched and not self.static:
             if self.type == "crystal":
                 player.crystals += 1
             elif self.type == "golden_key":
@@ -51,11 +54,17 @@ class Item(pygame.sprite.Sprite):
             if self.has_touched_animation:
                 self.frame_index += self.animation_speed
                 if self.frame_index >= len(self.touched_frames): 
-                    self.kill()
+                    if self.kill_on_touch:
+                        self.kill()
+                    else:
+                        self.static = True
                     return
                 self.image = self.touched_frames[int(self.frame_index)]  
             else:
-                self.kill()
+                if self.kill_on_touch:
+                    self.kill()
     
     def update(self) -> None:
-        self.animate()
+        if not self.static:
+            self.animate()
+        

@@ -1,7 +1,8 @@
-from turtle import pos
 from typing import List
 import pygame
 from lib.files import import_folder
+
+
 
 class AnimatedDeco(pygame.sprite.Sprite):
     def __init__(
@@ -14,7 +15,7 @@ class AnimatedDeco(pygame.sprite.Sprite):
         flip: bool = False
     ) -> None:
         super().__init__(groups)
-        self.frames = import_folder(f"assets/deco/{src}", scale, flip)
+        self.frames = import_folder(f"assets/decoration/{src}", scale, flip)
         self.frame_index: int = 0
         self.animation_speed = animate_speed
         self.image = pygame.Surface((32, 32))

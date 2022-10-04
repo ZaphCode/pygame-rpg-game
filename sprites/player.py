@@ -7,7 +7,7 @@ from sprites.entity import Entity
 class Player(Entity):
     def __init__(
         self, 
-        position: Tuple[int, int], 
+        position: Tuple[float, float], 
         groups: List[pygame.sprite.Group],
         obstacle_sprites_group: pygame.sprite.Group,
         items_sprite_group: pygame.sprite.Group,
@@ -16,23 +16,23 @@ class Player(Entity):
         scale: float = 2.8
     ) -> None:
         super().__init__(groups, obstacle_sprites_group)
-        # Main properties
         self.image = pygame.Surface((32, 32))
-        self.rect = self.image.get_rect(midbottom = position)
-        self.hitbox = self.rect.inflate(-6, -16)
         # Level utils
         self.obstacle_sprites_group = obstacle_sprites_group
         self.items_sprite_group = items_sprite_group
         self.create_attack_function = create_attack_function
-        # Movement
-        self.max_speed: int = PLAYER_SPEED
-        self.speed: int = PLAYER_SPEED
-        self.disabled = disabled
         # Animation
         self.frame_index: int = 0
         self.status: str = "down_idle"
         self.last_heanding: str = "down"
         self.load_animations(scale)
+        self.image = self.animations[self.status][self.frame_index]
+        # Movement
+        self.max_speed: int = PLAYER_SPEED
+        self.speed: int = PLAYER_SPEED
+        self.disabled = disabled
+        self.rect = self.image.get_rect(center = position)
+        self.hitbox = self.rect.inflate(-6, -16)
         # Attacking
         self.is_attacking: bool = False
         self.attack_available: bool = False
@@ -50,6 +50,10 @@ class Player(Entity):
         self.has_golden_key: bool = False
         self.is_object_interacting = False
         self.object_interacting_time = None
+        # Enemy interactions
+        self.hitted: bool = False
+        self.hitted_time = None
+        self.hitted_cooldown = 300
 
     def load_animations(self, scale) -> None:
         self.animations: dict = {
@@ -57,6 +61,7 @@ class Player(Entity):
             "up_idle": [], "down_idle": [], "right_idle": [], "left_idle": [],
             "up_attack": [], "down_attack": [], "right_attack": [], "left_attack": [],
             "up_shielded": [], "down_shielded": [], "right_shielded": [], "left_shielded": [],
+            "up_hit": [], "down_hit": [], "right_hit": [], "left_hit": [],
         }
 
         for animation in self.animations.keys():
@@ -71,7 +76,7 @@ class Player(Entity):
 
     def handle_inputs(self) -> None:
         keys = pygame.key.get_pressed()
-        if not self.is_attacking and not self.is_shielded:
+        if not self.is_attacking and not self.is_shielded and not self.hitted:
             if keys[pygame.K_w] or keys[pygame.K_UP]:
                 self.status, self.last_heanding = "up", "up"
                 self.direction.y = -1
@@ -90,7 +95,7 @@ class Player(Entity):
             else:
                 self.direction.x = 0    
         
-        if keys[pygame.K_SPACE] and self.attack_available and not self.is_shielded and not self.is_object_interacting:
+        if keys[pygame.K_SPACE] and self.attack_available and not self.is_shielded and not self.is_object_interacting and not self.hitted:
             self.is_attacking = True
             self.frame_index = 0
             self.attack_available = False
@@ -98,7 +103,7 @@ class Player(Entity):
             self.create_attack_function()
 
         if keys[pygame.K_LCTRL]:
-            if not self.is_attacking and self.shield_available:
+            if not self.is_attacking and self.shield_available and not self.hitted:
                 self.is_shielded = True
                 self.shield_available = False
                 self.shield_time = pygame.time.get_ticks()
@@ -114,6 +119,10 @@ class Player(Entity):
             self.speed = self.max_speed 
             self.status = self.last_heanding
 
+        if self.hitted:
+            if not "hit" in self.status:
+                self.status = self.last_heanding + "_hit"
+
         if self.is_shielded: 
             self.direction.x = 0
             self.direction.y = 0
@@ -121,7 +130,7 @@ class Player(Entity):
                 self.status = self.last_heanding + "_shielded"
 
         if self.direction.x == 0 and self.direction.y == 0: #idle
-            if not "idle" in self.status and not self.is_shielded and not self.is_attacking: 
+            if not "idle" in self.status and not self.is_shielded and not self.is_attacking and not self.hitted: 
                 self.status = self.last_heanding + "_idle"
                
     def cooldowns(self) -> None:
@@ -130,6 +139,10 @@ class Player(Entity):
         if self.is_attacking:
             if current_time - self.attack_time >= self.attacking_cooldown:
                 self.is_attacking = False
+
+        if self.hitted:
+            if current_time - self.hitted_time >= self.hitted_cooldown:
+                self.hitted = False
 
         if self.is_object_interacting:
             if current_time - self.object_interacting_time >= 100:

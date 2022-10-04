@@ -9,10 +9,10 @@ class Chest(Item):
         position,
         groups, 
     ) -> None:
-        super().__init__("chest", position, groups, 2, 0.1)
+        super().__init__("chest", position, groups, 2, 0.1, False)
         self.item_groups = groups
         self.loot_type = loot_type
-        self.interact_ratio = self.rect.inflate(20, 20)
+        self.interact_ratio = self.rect.inflate(18, 18)
 
     def on_touched(self, player: Player):
         keys = pygame.key.get_pressed()
@@ -21,7 +21,8 @@ class Chest(Item):
         if keys[pygame.K_SPACE] and not self.touched:
             self.frame_index = 0
             self.animation_speed = 0.3
+            self.hitbox = self.hitbox.inflate(-10, -10)
             self.touched = True
-            Item(self.loot_type, self.rect.topleft - pygame.math.Vector2(0, 13), self.item_groups[:2])
+            Item(self.loot_type, self.rect.topleft, self.item_groups[:2])
         
         

@@ -1,5 +1,6 @@
 import pygame
 from sprites.chest import Chest
+from sprites.enemy import Enemy
 from sprites.item import Item
 from settings import *
 from groups.camera import CameraGroup, YSortedCameraGroup
@@ -56,6 +57,7 @@ class Level:
             else:
                 Item(obj.name, (obj.x * 2, obj.y * 2), [self.visible_y_sorteed_camera_sprites, self.item_sprites])
         self.player = Player((162, 1408), [self.visible_y_sorteed_camera_sprites], self.obstacle_sprites, self.item_sprites, self.create_attack)
+        Enemy("bat", (292, 1420), [self.visible_y_sorteed_camera_sprites], self.obstacle_sprites, self.player)
 
     def create_attack(self) -> None:
         Attack(self.player, self.visible_y_sorteed_camera_sprites) 
