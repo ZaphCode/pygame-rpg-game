@@ -12,7 +12,8 @@ from pytmx.util_pygame import load_pygame
 from sprites.attack import Attack
 
 class Level:
-    def __init__(self) -> None:
+    def __init__(self, set_game_status_fn) -> None:
+        self.set_game_status = set_game_status_fn
         self.display_surface = pygame.display.get_surface()
         self.visible_camera_sprites = CameraGroup()
         self.visible_y_sorteed_camera_sprites = YSortedCameraGroup()
@@ -72,8 +73,9 @@ class Level:
     def create_item(self, item_type, position):
         Item(item_type, position, [self.visible_y_sorteed_camera_sprites, self.item_sprites])
 
-
     def run(self) -> None:
+        if self.player.is_dead:
+            self.set_game_status("gameover")
         self.visible_y_sorteed_camera_sprites.update()
         self.visible_camera_sprites.update()
         self.visible_camera_sprites._draw(self.player)
@@ -83,6 +85,7 @@ class Level:
         debugger.show(self.player.status, 100)
         debugger.show(f"protecting: {self.player.is_shielded}", 130)
         debugger.show(f"silver_key: {self.player.has_silver_key}", 160)
-        debugger.show(f"crystals: {self.player.crystals}", 190)
-        debugger.show(f"interacting: {self.player.is_object_interacting}", 220)
+        debugger.show(f"golden_key: {self.player.has_golden_key}", 190)
+        debugger.show(f"crystals: {self.player.crystals}", 220)
+        debugger.show(f"health: {self.player.current_health}", 250)
         

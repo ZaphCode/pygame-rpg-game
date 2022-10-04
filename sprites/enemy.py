@@ -70,7 +70,6 @@ class Enemy(Entity):
         return (distance, direction)
     
     def get_status(self) -> None:
-
         if self.current_health <= 0:
             self.status = "dead"
             return
@@ -141,12 +140,13 @@ class Enemy(Entity):
         elif self.heading_side == "right": self.image = current_animation[int(self.frame_index)]
         self.rect = self.image.get_rect(center = self.rect.center)
 
-    def attack(self, player) -> None:
+    def attack(self, player: Player) -> None:
         if not player.attacked:
             if not player.is_shielded:
                 player.attacked_time = pygame.time.get_ticks()
                 player.attacked = True
-                print("hit")
+                player.frame_index = 0
+                player.current_health -= self.stats.damage
                 player.direction = self.last_attack_direction
             else:
                 print("attack missed")

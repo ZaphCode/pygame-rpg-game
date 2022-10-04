@@ -13,7 +13,7 @@ class Game:
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         self.clock = pygame.time.Clock()
         self.status: str = "main_menu" 
-        self.level = Level()
+        self.level = Level(self.set_game_status)
         self.main_menu = Menu(self.set_game_status)
         self.pause_modal = Modal(self.set_game_status)
     
@@ -27,6 +27,8 @@ class Game:
             elif self.status == "playing":
                 self.screen.fill("#25131a")
                 self.level.run()
+            elif self.status == "gameover":
+                self.screen.fill("#1D1815")
             elif self.status == "paused":
                 self.pause_modal.render()
             elif self.status == "exit":

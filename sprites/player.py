@@ -51,10 +51,11 @@ class Player(Entity):
         self.is_object_interacting = False
         self.object_interacting_time = None
         # Enemy interactions
-        self.current_health = self.stats.health
+        self.is_dead: bool = False
+        self.current_health: int = self.stats.health
         self.attacked: bool = False
         self.attacked_time = None
-        self.attacked_cooldown = 300
+        self.attacked_cooldown: int = 300
 
     def load_animations(self, scale) -> None:
         self.animations: dict = {
@@ -63,6 +64,7 @@ class Player(Entity):
             "up_attack": [], "down_attack": [], "right_attack": [], "left_attack": [],
             "up_shielded": [], "down_shielded": [], "right_shielded": [], "left_shielded": [],
             "up_hit": [], "down_hit": [], "right_hit": [], "left_hit": [],
+            "dead": []
         }
 
         for animation in self.animations.keys():
@@ -112,6 +114,13 @@ class Player(Entity):
             self.is_shielded = False
 
     def handle_status(self):
+        if self.current_health <= 0:
+            self.direction = pygame.math.Vector2()
+            self.status = "dead"
+            if int(self.frame_index) >= len(self.animations[self.status]) - 1:
+                self.is_dead = True
+            return
+
         if self.is_attacking:
             self.current_speed = self.stats.speed / 2
             self.current_frame_change_speed = self.stats.frame_change_speed * 1.8

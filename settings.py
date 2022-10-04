@@ -10,7 +10,7 @@ MAIN_FONT_SRC = "./assets/pixel_font.ttf"
 PLAYER_DEFAULT_STATS = PlayerStats(
     health=400,
     speed=3,
-    damage=1000
+    damage=50
 )
 
 ENEMYS = {
@@ -24,7 +24,7 @@ ENEMYS = {
         scale=2.2
     ),
     "phantom": EnemyStats(
-        health=200,
+        health=150,
         speed=2,
         damage=45,
         attack_cooldown=1300,
@@ -32,7 +32,7 @@ ENEMYS = {
         attack_ratio=30,
     ),
     "slime": EnemyStats(
-        health=300,
+        health=250,
         speed=2,
         damage=50,
         attack_cooldown=1400,
@@ -52,7 +52,7 @@ ENEMYS = {
         scale=3
     ),
     "bat": EnemyStats(
-        health=150,
+        health=100,
         speed=3,
         damage=25,
         attack_cooldown=1000,
@@ -60,7 +60,7 @@ ENEMYS = {
         attack_ratio=30,
     ),
     "bat_boss": EnemyStats(
-        health=700,
+        health=750,
         speed=2,
         damage=60,
         attack_cooldown=1300,
