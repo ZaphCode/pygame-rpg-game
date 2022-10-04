@@ -41,6 +41,10 @@ class Item(pygame.sprite.Sprite):
                 player.has_silver_key = True
             elif self.type == "speed_potion":
                 player.stats.speed = 5
+            elif self.type == "health_potion":
+                player.current_health += 50
+                if player.current_health >= player.stats.health:
+                    player.current_health = player.stats.health
             self.frame_index = 0
             self.animation_speed = 0.2
             self.touched = True

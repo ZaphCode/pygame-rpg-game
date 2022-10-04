@@ -4,9 +4,11 @@ from lib.stats import EnemyStats
 from settings import ENEMYS
 from sprites.entity import Entity
 import pygame
+from sprites.item import Item
 from sprites.player import Player
 from typing import List, Tuple
 from pygame.transform import flip
+from random import choice
 
 class Enemy(Entity):
     def __init__(
@@ -15,16 +17,23 @@ class Enemy(Entity):
         position: Tuple[float, float],
         groups: List[pygame.sprite.Group], 
         obstacle_sprites_group: pygame.sprite.Group,
-        player: Player
+        player: Player,
+        create_item_fn
     ) -> None:
         super().__init__(groups, obstacle_sprites_group)
+        self.create_item_fn = create_item_fn
         # Graphics
-        if "_boss" in enemy_type: self.enemy_type_src = enemy_type.replace("_boss", "")
-        else: self.enemy_type_src: str = enemy_type 
+        if "_boss" in enemy_type: 
+            self.enemy_type_src = enemy_type.replace("_boss", "")
+            self.is_boss = True
+        else: 
+            self.is_boss = False
+            self.enemy_type_src: str = enemy_type 
         self.frame_index = 0
         self.status = "idle"
         self.heading_side = "left"
         self.stats: EnemyStats = ENEMYS[enemy_type]
+        self.current_health = self.stats.health
         self.current_frame_change_speed = self.stats.frame_change_speed
         self.load_animations()
         self.image = self.animations[self.status][self.frame_index]
@@ -62,6 +71,10 @@ class Enemy(Entity):
     
     def get_status(self) -> None:
 
+        if self.current_health <= 0:
+            self.status = "dead"
+            return
+
         if self.attacked:
             self.status = "hit"
             return
@@ -76,6 +89,16 @@ class Enemy(Entity):
 
     def handle_actions(self, player: Player) -> None:
         distance, direction = self.get_player_distance_and_direction(player)
+
+        if self.current_health <= 0:
+            self.direction = pygame.math.Vector2()
+            if int(self.frame_index) >= len(self.animations[self.status]) - 1:
+                drop = choice(list(self.stats.loot_items))
+                if drop:
+                    if self.is_boss: self.create_item_fn(drop, self.hitbox.center - pygame.math.Vector2(0, 20))
+                    else: self.create_item_fn(drop, self.hitbox.topleft)
+                self.kill()
+            return   
 
         # Attacked knockback
         if self.attacked:

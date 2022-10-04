@@ -64,10 +64,14 @@ class Level:
         
         entities_layer = self.tmx_data.get_layer_by_name("Entities")
         for obj in entities_layer:
-            Enemy(obj.name, (obj.x * 2, obj.y * 2), [self.visible_y_sorteed_camera_sprites, self.enemys_sprites], self.obstacle_sprites, self.player)
+            Enemy(obj.name, (obj.x * 2, obj.y * 2), [self.visible_y_sorteed_camera_sprites, self.enemys_sprites], self.obstacle_sprites, self.player, self.create_item)
 
     def create_attack(self) -> None:
         Attack(self.player, [self.visible_y_sorteed_camera_sprites], self.enemys_sprites) 
+
+    def create_item(self, item_type, position):
+        Item(item_type, position, [self.visible_y_sorteed_camera_sprites, self.item_sprites])
+
 
     def run(self) -> None:
         self.visible_y_sorteed_camera_sprites.update()

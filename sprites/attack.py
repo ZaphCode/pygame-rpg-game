@@ -28,7 +28,7 @@ class Attack(pygame.sprite.Sprite):
                     enemy.attacked_time = pygame.time.get_ticks()
                     enemy.attacked = True
                     enemy.frame_index = 0
-                    print(">>> Enemy attacked")
+                    enemy.current_health -= self.player.stats.damage
 
     def update(self):
         self.handle_hits()

@@ -9,8 +9,8 @@ MAIN_FONT_SRC = "./assets/pixel_font.ttf"
 
 PLAYER_DEFAULT_STATS = PlayerStats(
     health=400,
-    speed=4,
-    damage=40
+    speed=3,
+    damage=1000
 )
 
 ENEMYS = {
@@ -32,13 +32,15 @@ ENEMYS = {
         attack_ratio=30,
     ),
     "slime": EnemyStats(
-        health=350,
+        health=300,
         speed=2,
         damage=50,
         attack_cooldown=1400,
-        notice_ratio=150,
+        notice_ratio=140,
         attack_ratio=30,
-        scale=3
+        scale=3,
+        loot_items=["health_potion", "health_potion", None],
+        frame_change_speed=0.1
     ),
     "spinner": EnemyStats(
         health=350,
@@ -64,6 +66,8 @@ ENEMYS = {
         attack_cooldown=1300,
         notice_ratio=200,
         attack_ratio=45,
-        scale=6
+        scale=6,
+        loot_items=["golden_key"],
+        frame_change_speed=0.1
     )
 }

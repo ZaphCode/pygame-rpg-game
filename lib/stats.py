@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import List
 
 @dataclass
 class PlayerStats:
@@ -16,6 +17,7 @@ class EnemyStats:
     notice_ratio: int
     attack_ratio: int
     scale: float = 2.5
+    loot_items: any = ("crystal", None, None)
     frame_change_speed: float = 0.2
 
     

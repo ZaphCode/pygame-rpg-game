@@ -51,6 +51,7 @@ class Player(Entity):
         self.is_object_interacting = False
         self.object_interacting_time = None
         # Enemy interactions
+        self.current_health = self.stats.health
         self.attacked: bool = False
         self.attacked_time = None
         self.attacked_cooldown = 300
