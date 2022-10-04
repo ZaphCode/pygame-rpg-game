@@ -18,6 +18,7 @@ class Level:
         self.visible_y_sorteed_camera_sprites = YSortedCameraGroup()
         self.item_sprites = pygame.sprite.Group()
         self.obstacle_sprites = pygame.sprite.Group()
+        self.enemys_sprites = pygame.sprite.Group()
         self.tmx_data = load_pygame("./assets/level/main_level.tmx")
         self.build_map()
 
@@ -51,16 +52,22 @@ class Level:
                 else:
                     for x, y, surf in layer.tiles():
                         Tile(surf, (x * TILESIZE, y * TILESIZE), [self.visible_camera_sprites])
-        for obj in self.tmx_data.objects:
+        
+        items_layer = self.tmx_data.get_layer_by_name("Items")
+        for obj in items_layer:
             if obj.name == "chest":
                 Chest(obj.loot, (obj.x * 2, obj.y * 2), [self.visible_y_sorteed_camera_sprites, self.item_sprites, self.obstacle_sprites])
             else:
                 Item(obj.name, (obj.x * 2, obj.y * 2), [self.visible_y_sorteed_camera_sprites, self.item_sprites])
+
         self.player = Player((162, 1408), [self.visible_y_sorteed_camera_sprites], self.obstacle_sprites, self.item_sprites, self.create_attack)
-        Enemy("bat", (292, 1420), [self.visible_y_sorteed_camera_sprites], self.obstacle_sprites, self.player)
+        
+        entities_layer = self.tmx_data.get_layer_by_name("Entities")
+        for obj in entities_layer:
+            Enemy(obj.name, (obj.x * 2, obj.y * 2), [self.visible_y_sorteed_camera_sprites, self.enemys_sprites], self.obstacle_sprites, self.player)
 
     def create_attack(self) -> None:
-        Attack(self.player, self.visible_y_sorteed_camera_sprites) 
+        Attack(self.player, [self.visible_y_sorteed_camera_sprites], self.enemys_sprites) 
 
     def run(self) -> None:
         self.visible_y_sorteed_camera_sprites.update()

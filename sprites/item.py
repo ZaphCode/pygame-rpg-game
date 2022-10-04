@@ -40,7 +40,7 @@ class Item(pygame.sprite.Sprite):
             elif self.type == "silver_key":
                 player.has_silver_key = True
             elif self.type == "speed_potion":
-                player.max_speed = 5
+                player.stats.speed = 5
             self.frame_index = 0
             self.animation_speed = 0.2
             self.touched = True

@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 
 @dataclass
-class UserStats:
+class PlayerStats:
     health: int
-    max_speed: int
+    speed: int
     damage: int
+    frame_change_speed: float = 0.2
 
 @dataclass
 class EnemyStats:
@@ -15,5 +16,6 @@ class EnemyStats:
     notice_ratio: int
     attack_ratio: int
     scale: float = 2.5
+    frame_change_speed: float = 0.2
 
     

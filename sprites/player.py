@@ -16,27 +16,27 @@ class Player(Entity):
         scale: float = 2.8
     ) -> None:
         super().__init__(groups, obstacle_sprites_group)
-        self.image = pygame.Surface((32, 32))
+        self.stats = PLAYER_DEFAULT_STATS
         # Level utils
         self.obstacle_sprites_group = obstacle_sprites_group
         self.items_sprite_group = items_sprite_group
         self.create_attack_function = create_attack_function
         # Animation
         self.frame_index: int = 0
+        self.current_frame_change_speed = self.stats.frame_change_speed
         self.status: str = "down_idle"
         self.last_heanding: str = "down"
         self.load_animations(scale)
         self.image = self.animations[self.status][self.frame_index]
         # Movement
-        self.max_speed: int = PLAYER_SPEED
-        self.speed: int = PLAYER_SPEED
+        self.current_speed: int = self.stats.speed
         self.disabled = disabled
         self.rect = self.image.get_rect(center = position)
         self.hitbox = self.rect.inflate(-6, -16)
         # Attacking
         self.is_attacking: bool = False
         self.attack_available: bool = False
-        self.attacking_cooldown: int = 400
+        self.attacking_cooldown: int = 200
         self.attack_again_cooldown: int = 1000
         self.attack_time = pygame.time.get_ticks()
         # Shield
@@ -51,9 +51,9 @@ class Player(Entity):
         self.is_object_interacting = False
         self.object_interacting_time = None
         # Enemy interactions
-        self.hitted: bool = False
-        self.hitted_time = None
-        self.hitted_cooldown = 300
+        self.attacked: bool = False
+        self.attacked_time = None
+        self.attacked_cooldown = 300
 
     def load_animations(self, scale) -> None:
         self.animations: dict = {
@@ -69,14 +69,14 @@ class Player(Entity):
 
     def animate(self) -> None:
         current_animation: List[pygame.Surface] = self.animations[self.status]
-        self.frame_index += 0.2
+        self.frame_index += self.current_frame_change_speed
         if self.frame_index >= len(current_animation): self.frame_index = 0
         self.image = current_animation[int(self.frame_index)]
         self.rect = self.image.get_rect(center = self.rect.center)
 
     def handle_inputs(self) -> None:
         keys = pygame.key.get_pressed()
-        if not self.is_attacking and not self.is_shielded and not self.hitted:
+        if not self.is_attacking and not self.is_shielded and not self.attacked:
             if keys[pygame.K_w] or keys[pygame.K_UP]:
                 self.status, self.last_heanding = "up", "up"
                 self.direction.y = -1
@@ -95,7 +95,7 @@ class Player(Entity):
             else:
                 self.direction.x = 0    
         
-        if keys[pygame.K_SPACE] and self.attack_available and not self.is_shielded and not self.is_object_interacting and not self.hitted:
+        if keys[pygame.K_SPACE] and self.attack_available and not self.is_shielded and not self.is_object_interacting and not self.attacked:
             self.is_attacking = True
             self.frame_index = 0
             self.attack_available = False
@@ -103,7 +103,7 @@ class Player(Entity):
             self.create_attack_function()
 
         if keys[pygame.K_LCTRL]:
-            if not self.is_attacking and self.shield_available and not self.hitted:
+            if not self.is_attacking and self.shield_available and not self.attacked:
                 self.is_shielded = True
                 self.shield_available = False
                 self.shield_time = pygame.time.get_ticks()
@@ -112,14 +112,16 @@ class Player(Entity):
 
     def handle_status(self):
         if self.is_attacking:
-            self.speed = self.max_speed / 2
+            self.current_speed = self.stats.speed / 2
+            self.current_frame_change_speed = self.stats.frame_change_speed * 1.8
             if not "attack" in self.status:
                 self.status = self.last_heanding + "_attack"
         else: 
-            self.speed = self.max_speed 
+            self.current_speed = self.stats.speed
+            self.current_frame_change_speed = self.stats.frame_change_speed
             self.status = self.last_heanding
 
-        if self.hitted:
+        if self.attacked:
             if not "hit" in self.status:
                 self.status = self.last_heanding + "_hit"
 
@@ -130,7 +132,7 @@ class Player(Entity):
                 self.status = self.last_heanding + "_shielded"
 
         if self.direction.x == 0 and self.direction.y == 0: #idle
-            if not "idle" in self.status and not self.is_shielded and not self.is_attacking and not self.hitted: 
+            if not "idle" in self.status and not self.is_shielded and not self.is_attacking and not self.attacked: 
                 self.status = self.last_heanding + "_idle"
                
     def cooldowns(self) -> None:
@@ -140,9 +142,9 @@ class Player(Entity):
             if current_time - self.attack_time >= self.attacking_cooldown:
                 self.is_attacking = False
 
-        if self.hitted:
-            if current_time - self.hitted_time >= self.hitted_cooldown:
-                self.hitted = False
+        if self.attacked:
+            if current_time - self.attacked_time >= self.attacked_cooldown:
+                self.attacked = False
 
         if self.is_object_interacting:
             if current_time - self.object_interacting_time >= 100:
@@ -168,6 +170,6 @@ class Player(Entity):
             self.cooldowns() 
             self.animate()
             self.handle_item_touch()
-            self.move(self.speed)
+            self.move(self.current_speed)
         else:
             self.animate()

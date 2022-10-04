@@ -19,11 +19,13 @@ class Enemy(Entity):
     ) -> None:
         super().__init__(groups, obstacle_sprites_group)
         # Graphics
-        self.enemy_type: str = enemy_type 
+        if "_boss" in enemy_type: self.enemy_type_src = enemy_type.replace("_boss", "")
+        else: self.enemy_type_src: str = enemy_type 
         self.frame_index = 0
         self.status = "idle"
         self.heading_side = "left"
         self.stats: EnemyStats = ENEMYS[enemy_type]
+        self.current_frame_change_speed = self.stats.frame_change_speed
         self.load_animations()
         self.image = self.animations[self.status][self.frame_index]
         # Movement
@@ -36,6 +38,10 @@ class Enemy(Entity):
         self.attack_available_time = None
         self.attack_available_cooldown= 1000
         self.last_attack_direction = pygame.math.Vector2()
+        # Hits
+        self.attacked: bool = False
+        self.attacked_time = None
+        self.attacked_cooldown = 250
 
     def load_animations(self) -> None:
         self.animations: dict = {
@@ -43,10 +49,10 @@ class Enemy(Entity):
         }
 
         for animation in self.animations.keys():
-            path = f"assets/enemys/{self.enemy_type}/{animation}"
+            path = f"assets/enemys/{self.enemy_type_src}/{animation}"
             self.animations[animation] = import_folder(path, self.stats.scale)
 
-    def get_player_distance_and_direction(self, player: Player) -> Tuple[float, float]:
+    def get_player_distance_and_direction(self, player: Player) -> Tuple[float, pygame.math.Vector2]:
         enemy_vect = pygame.math.Vector2(self.rect.center)
         player_vect = pygame.math.Vector2(player.rect.center)
         distance = (player_vect - enemy_vect).magnitude()
@@ -54,68 +60,77 @@ class Enemy(Entity):
         else: direction = pygame.math.Vector2() 
         return (distance, direction)
     
-    def get_status(self, player: Player) -> None:
-        distance, _ = self.get_player_distance_and_direction(player)
+    def get_status(self) -> None:
 
-        if self.direction.x:
-            if self.direction.x > 0: self.heading_side = "left"
-            else: self.heading_side = "right"
+        if self.attacked:
+            self.status = "hit"
+            return
 
-        if distance <= self.stats.attack_ratio:
-            self.status = "idle"
-            if self.attack_available:
-                self.is_attacking = True
-                self.attack_time = pygame.time.get_ticks()
-                self.attack_available_time = pygame.time.get_ticks()
-                self.attack_available = False
-        elif distance <= self.stats.notice_ratio:
+        if self.direction != pygame.math.Vector2():
+            if self.direction.x:
+                if self.direction.x > 0: self.heading_side = "left"
+                else: self.heading_side = "right"
             self.status = "walking"
         else:
             self.status = "idle"
 
-        if not self.attack_available:
-            self.status = "idle"
-
     def handle_actions(self, player: Player) -> None:
-        if self.is_attacking:
-            if not player.hitted:
-                if not player.is_shielded:
-                    player.hitted_time = pygame.time.get_ticks()
-                    player.hitted = True
-                    print("hit")
-                    player.direction = self.last_attack_direction
-                else:
-                    print("attack missed")
-            self.is_attacking = False
+        distance, direction = self.get_player_distance_and_direction(player)
 
-        if self.status == "walking":
-            self.last_attack_direction = self.get_player_distance_and_direction(player)[1]
-            self.direction = self.get_player_distance_and_direction(player)[1]
+        # Attacked knockback
+        if self.attacked:
+            self.current_frame_change_speed = 0.2
+            self.direction = direction.rotate(180)
+            return
         else:
-            self.last_attack_direction = self.get_player_distance_and_direction(player)[1]
+            self.current_frame_change_speed = self.stats.frame_change_speed
+
+        # Dispatch attack
+        if distance <= self.stats.attack_ratio:
+            if self.attack_available:
+                self.attack(player)
+                self.attack_available_time = pygame.time.get_ticks()
+                self.attack_available = False    
+        
+        # Movement
+        if distance <= self.stats.notice_ratio and self.attack_available:
+            self.last_attack_direction = direction
+            self.direction = direction
+        else:
             self.direction = pygame.math.Vector2()
 
     def cooldowns(self) -> None:
         current_time = pygame.time.get_ticks()
-        # if self.is_attacking: # This is optional
-        #     if current_time - self.attack_time >= 0.2:
-        #         self.is_attacking = False
 
         if not self.attack_available:
             if current_time - self.attack_available_time >= self.stats.attack_cooldown:
                 self.attack_available = True
+
+        if self.attacked:
+            if current_time - self.attacked_time >= self.attacked_cooldown:
+                self.attacked = False
     
     def animate(self) -> None:
         current_animation: List[pygame.Surface] = self.animations[self.status]
-        self.frame_index += 0.2
+        self.frame_index += self.stats.frame_change_speed
         if self.frame_index >= len(current_animation): self.frame_index = 0
         if self.heading_side == "left": self.image = flip(current_animation[int(self.frame_index)], True, False)
         elif self.heading_side == "right": self.image = current_animation[int(self.frame_index)]
         self.rect = self.image.get_rect(center = self.rect.center)
 
+    def attack(self, player) -> None:
+        if not player.attacked:
+            if not player.is_shielded:
+                player.attacked_time = pygame.time.get_ticks()
+                player.attacked = True
+                print("hit")
+                player.direction = self.last_attack_direction
+            else:
+                print("attack missed")
+
     def update(self) -> None:
-        self.get_status(self.player)
+        self.get_status()
         self.cooldowns()
         self.handle_actions(self.player)
         self.animate()
-        self.move(3)
+        self.move(self.stats.speed)
