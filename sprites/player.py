@@ -9,9 +9,10 @@ class Player(Entity):
         self, 
         position: Tuple[float, float], 
         groups: List[pygame.sprite.Group],
-        obstacle_sprites_group: pygame.sprite.Group,
-        items_sprite_group: pygame.sprite.Group,
-        create_attack_function,
+        obstacle_sprites_group: pygame.sprite.Group = None,
+        items_sprite_group: pygame.sprite.Group = None,
+        create_attack_hitbox_function = None,
+        create_protection_hitbox_function = None,
         disabled: bool = False,
         scale: float = 2.8
     ) -> None:
@@ -20,7 +21,8 @@ class Player(Entity):
         # Level utils
         self.obstacle_sprites_group = obstacle_sprites_group
         self.items_sprite_group = items_sprite_group
-        self.create_attack_function = create_attack_function
+        self.create_attack_hitbox_function = create_attack_hitbox_function
+        self.create_protection_hitbox_function = create_protection_hitbox_function
         # Animation
         self.frame_index: int = 0
         self.current_frame_change_speed = self.stats.frame_change_speed
@@ -36,7 +38,7 @@ class Player(Entity):
         # Attacking
         self.is_attacking: bool = False
         self.attack_available: bool = False
-        self.attacking_cooldown: int = 200
+        self.attacking_cooldown: int = 300
         self.attack_again_cooldown: int = 1000
         self.attack_time = pygame.time.get_ticks()
         # Shield
@@ -44,6 +46,7 @@ class Player(Entity):
         self.shield_available: bool = True
         self.shield_time = None
         self.shield_again_cooldown: int = 400
+        self.protection_hitbox_created = False
         # Intems
         self.crystals: int = 0
         self.has_silver_key: bool = False
@@ -103,11 +106,12 @@ class Player(Entity):
             self.frame_index = 0
             self.attack_available = False
             self.attack_time = pygame.time.get_ticks()
-            self.create_attack_function()
+            self.create_attack_hitbox_function()
 
         if keys[pygame.K_LCTRL]:
             if not self.is_attacking and self.shield_available and not self.attacked:
                 self.is_shielded = True
+                self.create_protection_hitbox_function()
                 self.shield_available = False
                 self.shield_time = pygame.time.get_ticks()
         else:
@@ -123,7 +127,7 @@ class Player(Entity):
 
         if self.is_attacking:
             self.current_speed = self.stats.speed / 2
-            self.current_frame_change_speed = self.stats.frame_change_speed * 1.8
+            self.current_frame_change_speed = self.stats.frame_change_speed * 1.2
             if not "attack" in self.status:
                 self.status = self.last_heanding + "_attack"
         else: 
@@ -134,10 +138,10 @@ class Player(Entity):
         if self.attacked:
             if not "hit" in self.status:
                 self.status = self.last_heanding + "_hit"
+                return
 
-        if self.is_shielded: 
-            self.direction.x = 0
-            self.direction.y = 0
+        if self.is_shielded and not self.attacked: 
+            self.direction = pygame.math.Vector2() # set static
             if not "shielded" in self.status:
                 self.status = self.last_heanding + "_shielded"
 

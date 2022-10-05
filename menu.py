@@ -9,7 +9,7 @@ class Menu(UI):
         super().__init__(set_status_fn)
 
     def create_ui(self) -> None:
-        Player((WIDTH/2, 180), [self.images_group], None, None, None, True, 5)
+        Player((WIDTH/2, 180), [self.images_group], disabled=True, scale=5)
         Font("The Legends of Zelda", 35, "#FFE156",  (WIDTH/2, 60), [self.images_group])
         Font("UABCS version", 28, "#FF3C3C",  (WIDTH/2, 110), [self.images_group])
         Button("lg", "Start", (WIDTH/2, 300 - 30), [self.button_group], lambda: self.set_status_fn("playing"))

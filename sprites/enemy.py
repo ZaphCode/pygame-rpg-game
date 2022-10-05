@@ -46,6 +46,7 @@ class Enemy(Entity):
         self.attack_available = True
         self.attack_available_time = None
         self.attack_available_cooldown= 1000
+        self.attacks_protected_by_user: bool = False
         self.last_attack_direction = pygame.math.Vector2()
         # Hits
         self.attacked: bool = False
@@ -142,14 +143,14 @@ class Enemy(Entity):
 
     def attack(self, player: Player) -> None:
         if not player.attacked:
-            if not player.is_shielded:
+            if not self.attacks_protected_by_user:
                 player.attacked_time = pygame.time.get_ticks()
                 player.attacked = True
                 player.frame_index = 0
                 player.current_health -= self.stats.damage
                 player.direction = self.last_attack_direction
             else:
-                print("attack missed")
+                print("Miss")
 
     def update(self) -> None:
         self.get_status()

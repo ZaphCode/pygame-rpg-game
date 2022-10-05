@@ -9,7 +9,7 @@ from sprites.player import Player
 from debug import debugger
 from sprites.animated_deco import AnimatedDeco
 from pytmx.util_pygame import load_pygame
-from sprites.attack import Attack
+from sprites.hitboxes import Attack, Protection
 
 class Level:
     def __init__(self, set_game_status_fn) -> None:
@@ -61,14 +61,25 @@ class Level:
             else:
                 Item(obj.name, (obj.x * 2, obj.y * 2), [self.visible_y_sorteed_camera_sprites, self.item_sprites])
 
-        self.player = Player((162, 1408), [self.visible_y_sorteed_camera_sprites], self.obstacle_sprites, self.item_sprites, self.create_attack)
+        self.player = Player(
+            (162, 1408), 
+            [self.visible_y_sorteed_camera_sprites], 
+            self.obstacle_sprites, 
+            self.item_sprites, 
+            self.create_attack_hitbox,
+            self.create_protection_hitbox,
+        )
         
         entities_layer = self.tmx_data.get_layer_by_name("Entities")
         for obj in entities_layer:
             Enemy(obj.name, (obj.x * 2, obj.y * 2), [self.visible_y_sorteed_camera_sprites, self.enemys_sprites], self.obstacle_sprites, self.player, self.create_item)
 
-    def create_attack(self) -> None:
+    def create_attack_hitbox(self) -> None:
         Attack(self.player, [self.visible_y_sorteed_camera_sprites], self.enemys_sprites) 
+
+    def create_protection_hitbox(self) -> None:
+        if not self.player.protection_hitbox_created:
+            Protection(self.player, [self.visible_y_sorteed_camera_sprites], self.enemys_sprites) 
 
     def create_item(self, item_type, position):
         Item(item_type, position, [self.visible_y_sorteed_camera_sprites, self.item_sprites])
