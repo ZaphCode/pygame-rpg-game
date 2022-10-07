@@ -20,7 +20,7 @@ class AnimatedDeco(pygame.sprite.Sprite):
         self.animation_speed = animate_speed
         self.image = pygame.Surface((32, 32))
         self.rect = self.image.get_rect(topleft = position)
-        self.hitbox = self.rect.inflate(-20, -20)
+        self.hitbox = self.rect.inflate(-26, -20)
 
     def animate(self) -> None:
         self.frame_index += self.animation_speed

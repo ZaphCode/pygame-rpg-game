@@ -14,7 +14,8 @@ class Player(Entity):
         create_attack_hitbox_function = None,
         create_protection_hitbox_function = None,
         disabled: bool = False,
-        scale: float = 2.8
+        scale: float = 2.8,
+        default_status: str = "down_idle"
     ) -> None:
         super().__init__(groups, obstacle_sprites_group)
         self.stats = PLAYER_DEFAULT_STATS
@@ -26,7 +27,7 @@ class Player(Entity):
         # Animation
         self.frame_index: int = 0
         self.current_frame_change_speed = self.stats.frame_change_speed
-        self.status: str = "down_idle"
+        self.status: str = default_status
         self.last_heanding: str = "down"
         self.load_animations(scale)
         self.image = self.animations[self.status][self.frame_index]
@@ -82,7 +83,7 @@ class Player(Entity):
 
     def handle_inputs(self) -> None:
         keys = pygame.key.get_pressed()
-        if not self.is_attacking and not self.is_shielded and not self.attacked:
+        if not self.is_attacking and not self.is_shielded and not self.attacked and not self.status == "dead":
             if keys[pygame.K_w] or keys[pygame.K_UP]:
                 self.status, self.last_heanding = "up", "up"
                 self.direction.y = -1
@@ -117,12 +118,16 @@ class Player(Entity):
         else:
             self.is_shielded = False
 
-    def handle_status(self):
-        if self.current_health <= 0:
+    def check_if_is_dead(self) -> None:
+        if self.current_health <= 0 and self.status == "dead":
             self.direction = pygame.math.Vector2()
-            self.status = "dead"
             if int(self.frame_index) >= len(self.animations[self.status]) - 1:
                 self.is_dead = True
+                self.kill()
+
+    def handle_status(self):
+        if self.current_health <= 0:
+            self.status = "dead"
             return
 
         if self.is_attacking:
@@ -179,6 +184,7 @@ class Player(Entity):
 
     def update(self) -> None:   
         if not self.disabled:
+            self.check_if_is_dead()
             self.handle_inputs()
             self.handle_status()
             self.cooldowns() 
@@ -186,4 +192,5 @@ class Player(Entity):
             self.handle_item_touch()
             self.move(self.current_speed)
         else:
+            self.current_frame_change_speed = 0.1
             self.animate()

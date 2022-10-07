@@ -1,7 +1,8 @@
 import pygame
-from level import Level
-from menu import Menu
-from modal import Modal
+from displays.level import Level
+from displays.menu import Menu
+from displays.pause import Pause
+from displays.gameover import Gameover
 from settings import *
 from sys import exit
 from debug import debugger
@@ -15,22 +16,25 @@ class Game:
         self.status: str = "main_menu" 
         self.level = Level(self.set_game_status)
         self.main_menu = Menu(self.set_game_status)
-        self.pause_modal = Modal(self.set_game_status)
+        self.pause_modal = Pause(self.set_game_status)
+        self.gameover = Gameover(self.set_game_status)
     
     def run(self) -> None:
         while True:
             self.handle_events() # Event loop
 
             if self.status == "main_menu":
-                self.screen.fill("#1D1815")
                 self.main_menu.render()
             elif self.status == "playing":
                 self.screen.fill("#25131a")
                 self.level.run()
             elif self.status == "gameover":
-                self.screen.fill("#1D1815")
+                self.gameover.render()
             elif self.status == "paused":
                 self.pause_modal.render()
+            elif self.status == "restart":
+                self.level = Level(self.set_game_status)
+                self.set_game_status("playing")
             elif self.status == "exit":
                 self.exit()
 

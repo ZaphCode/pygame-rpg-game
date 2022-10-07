@@ -39,7 +39,8 @@ class Enemy(Entity):
         self.image = self.animations[self.status][self.frame_index]
         # Movement
         self.rect = self.image.get_rect(center = position)
-        self.hitbox = self.rect.inflate(-10, -10)
+        if self.is_boss: self.hitbox = self.rect.inflate(-46, -56)
+        else: self.hitbox = self.rect.inflate(-15, -15)
         self.player = player
         # Actions
         self.is_attacking: bool = False
@@ -142,7 +143,7 @@ class Enemy(Entity):
         self.rect = self.image.get_rect(center = self.rect.center)
 
     def attack(self, player: Player) -> None:
-        if not player.attacked:
+        if not player.attacked and player.current_health > 0:
             if not self.attacks_protected_by_user:
                 player.attacked_time = pygame.time.get_ticks()
                 player.attacked = True

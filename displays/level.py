@@ -1,5 +1,7 @@
 import pygame
+from displays.playing_ui import PlayingUI
 from sprites.chest import Chest
+from sprites.door import Door
 from sprites.enemy import Enemy
 from sprites.item import Item
 from settings import *
@@ -22,6 +24,7 @@ class Level:
         self.enemys_sprites = pygame.sprite.Group()
         self.tmx_data = load_pygame("./assets/level/main_level.tmx")
         self.build_map()
+        self.display_surface.fill("#25131a")
 
     def build_map(self) -> None:
         for layer in self.tmx_data.visible_layers:
@@ -73,6 +76,12 @@ class Level:
         entities_layer = self.tmx_data.get_layer_by_name("Entities")
         for obj in entities_layer:
             Enemy(obj.name, (obj.x * 2, obj.y * 2), [self.visible_y_sorteed_camera_sprites, self.enemys_sprites], self.obstacle_sprites, self.player, self.create_item)
+        
+        doors_layer = self.tmx_data.get_layer_by_name("Doors")
+        for obj in doors_layer:
+            Door(obj.name, obj.required_key, (obj.x * 2, obj.y * 2), self.player, [self.visible_y_sorteed_camera_sprites, self.obstacle_sprites])
+
+        self.level_ui = PlayingUI(self.set_game_status, self.player)
 
     def create_attack_hitbox(self) -> None:
         Attack(self.player, [self.visible_y_sorteed_camera_sprites], self.enemys_sprites) 
@@ -91,6 +100,7 @@ class Level:
         self.visible_camera_sprites.update()
         self.visible_camera_sprites._draw(self.player)
         self.visible_y_sorteed_camera_sprites._draw(self.player)
+        self.level_ui.render()
         debugger.show(self.player.direction, 40)
         debugger.show(self.player.rect.center, 70)
         debugger.show(self.player.status, 100)
@@ -99,4 +109,5 @@ class Level:
         debugger.show(f"golden_key: {self.player.has_golden_key}", 190)
         debugger.show(f"crystals: {self.player.crystals}", 220)
         debugger.show(f"health: {self.player.current_health}", 250)
+        debugger.show(f"interacting: {self.player.is_object_interacting}", 280)
         

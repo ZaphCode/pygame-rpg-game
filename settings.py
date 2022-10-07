@@ -6,9 +6,10 @@ FPS = 60
 TILESIZE = 32
 DEBUG_FONT_COLOR = (180, 180, 255, 80)
 MAIN_FONT_SRC = "./assets/pixel_font.ttf"
+TITLE_FONT_SRC = "./assets/pixel_font_2.ttf"
 
 PLAYER_DEFAULT_STATS = PlayerStats(
-    health=400,
+    health=500,
     speed=3,
     damage=50
 )
@@ -55,17 +56,17 @@ ENEMYS = {
         health=100,
         speed=3,
         damage=25,
-        attack_cooldown=1000,
+        attack_cooldown=1300,
         notice_ratio=110,
         attack_ratio=30,
     ),
     "bat_boss": EnemyStats(
-        health=750,
+        health=1000,
         speed=2,
         damage=60,
-        attack_cooldown=1300,
-        notice_ratio=200,
-        attack_ratio=45,
+        attack_cooldown=1700,
+        notice_ratio=220,
+        attack_ratio=71,
         scale=6,
         loot_items=["golden_key"],
         frame_change_speed=0.1

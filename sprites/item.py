@@ -42,7 +42,7 @@ class Item(pygame.sprite.Sprite):
             elif self.type == "speed_potion":
                 player.stats.speed = 5
             elif self.type == "health_potion":
-                player.current_health += 50
+                player.current_health += 125
                 if player.current_health >= player.stats.health:
                     player.current_health = player.stats.health
             self.frame_index = 0
