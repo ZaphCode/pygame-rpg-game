@@ -1,5 +1,6 @@
 from typing import List
 import pygame
+from lib.sounds import sounds_manager
 from sprites.player import Player
 from lib.files import import_folder
 
@@ -34,14 +35,19 @@ class Item(pygame.sprite.Sprite):
     def on_touched(self, player: Player):
         if not self.touched and not self.static:
             if self.type == "crystal":
+                sounds_manager.crystal_picked.play()
                 player.crystals += 1
             elif self.type == "golden_key":
+                sounds_manager.key_pick.play()
                 player.has_golden_key = True
             elif self.type == "silver_key":
+                sounds_manager.key_pick.play()
                 player.has_silver_key = True
             elif self.type == "speed_potion":
+                sounds_manager.speed_potion.play()
                 player.stats.speed = 5
             elif self.type == "health_potion":
+                sounds_manager.health_potion.play()
                 player.current_health += 125
                 if player.current_health >= player.stats.health:
                     player.current_health = player.stats.health

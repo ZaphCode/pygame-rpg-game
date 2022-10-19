@@ -2,6 +2,8 @@ import pygame
 from settings import MAIN_FONT_SRC
 from sprites.player import Player
 from pygame.transform import scale
+from pygame.image import load
+
 
 class PlayerReactive(pygame.sprite.Sprite):
     def __init__(self, player: Player, groups) -> None:
@@ -17,7 +19,7 @@ class PlayerReactive(pygame.sprite.Sprite):
 class HealthBar(PlayerReactive):
     def __init__(self, position, player: Player, groups) -> None:
         super().__init__(player, groups)
-        self.image = pygame.image.load("assets/ui/health_bar.png").convert_alpha()
+        self.image = load("assets/ui/health_bar.png").convert_alpha()
         self.rect = self.image.get_rect(midleft = position)
 
     def handle_change(self) -> None:
@@ -41,6 +43,25 @@ class CrystalCount(PlayerReactive):
         if self.player.crystals >= 10 and not self.moved:
             self.rect.x -= 7
             self.moved = True
+
+class KeySlot(PlayerReactive):
+    def __init__(self, type: str, position, player: Player, groups) -> None:
+        super().__init__(player, groups)
+        self.scale = (26, 26)
+        self.image = scale(load("assets/ui/key_not_picked.png").convert_alpha(), self.scale)
+        self.type = type
+        self.rect = self.image.get_rect(topleft = position)
+        self.has_changed = False
+
+    def handle_change(self) -> None:
+        if not self.has_changed:
+            if self.type == "silver_key" and self.player.has_silver_key:
+                self.image = scale(load("assets/silver_key/static.png").convert_alpha(), self.scale)
+                self.has_changed = True
+            elif self.type == "golden_key" and self.player.has_golden_key:
+                self.image = scale(load("assets/golden_key/static.png").convert_alpha(), self.scale)
+                self.has_changed = True
+
 
     
 

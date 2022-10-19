@@ -1,5 +1,7 @@
+import imp
 from typing import List
 import pygame
+from lib.sounds import sounds_manager
 from pygame.transform import scale
 from sprites.player import Player
 
@@ -29,11 +31,13 @@ class Door(pygame.sprite.Sprite):
             if keys[pygame.K_SPACE]:
                 if self.key_required == "silver_key":
                     if self.player.has_silver_key:
+                        sounds_manager.open_door.play()
                         self.kill()
                         self.player.has_silver_key = False
                         return
                 elif self.key_required == "golden_key":
                     if self.player.has_golden_key:
+                        sounds_manager.open_door.play()
                         self.kill()
                         self.player.has_silver_key = False
                         return

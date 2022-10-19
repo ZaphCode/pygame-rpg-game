@@ -2,6 +2,7 @@ from typing import List, Tuple
 import pygame
 from lib.files import import_folder
 from settings import *
+from lib.sounds import sounds_manager
 from sprites.entity import Entity
 
 class Player(Entity):
@@ -108,6 +109,7 @@ class Player(Entity):
             self.attack_available = False
             self.attack_time = pygame.time.get_ticks()
             self.create_attack_hitbox_function()
+            sounds_manager.sword_slash.play()
 
         if keys[pygame.K_LCTRL]:
             if not self.is_attacking and self.shield_available and not self.attacked:
@@ -123,6 +125,7 @@ class Player(Entity):
             self.direction = pygame.math.Vector2()
             if int(self.frame_index) >= len(self.animations[self.status]) - 1:
                 self.is_dead = True
+                sounds_manager.player_dead.play()
                 self.kill()
 
     def handle_status(self):

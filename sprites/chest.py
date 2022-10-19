@@ -1,6 +1,7 @@
 from sprites.item import Item
 from sprites.player import Player
 import pygame
+from lib.sounds import sounds_manager
 
 class Chest(Item):
     def __init__(
@@ -19,6 +20,7 @@ class Chest(Item):
         player.object_interacting_time = pygame.time.get_ticks()
         player.is_object_interacting = True
         if keys[pygame.K_SPACE] and not self.touched:
+            sounds_manager.open_chest.play()
             self.frame_index = 0
             self.animation_speed = 0.3
             self.hitbox = self.hitbox.inflate(-10, -10)

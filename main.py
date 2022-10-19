@@ -3,8 +3,10 @@ from displays.level import Level
 from displays.menu import Menu
 from displays.pause import Pause
 from displays.gameover import Gameover
+from displays.win import Win
 from settings import *
 from sys import exit
+from lib.sounds import sounds_manager
 from debug import debugger
 
 class Game:
@@ -14,10 +16,11 @@ class Game:
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         self.clock = pygame.time.Clock()
         self.status: str = "main_menu" 
-        self.level = Level(self.set_game_status)
+        self.level = Level((162, 1408), (1807, 650), self.set_game_status)
         self.main_menu = Menu(self.set_game_status)
         self.pause_modal = Pause(self.set_game_status)
         self.gameover = Gameover(self.set_game_status)
+        self.winscreen = Win(self.set_game_status)
     
     def run(self) -> None:
         while True:
@@ -33,10 +36,14 @@ class Game:
             elif self.status == "paused":
                 self.pause_modal.render()
             elif self.status == "restart":
-                self.level = Level(self.set_game_status)
+                self.level = Level((162, 1408), (1807, 650), self.set_game_status)
                 self.set_game_status("playing")
+            elif self.status == "win":
+                self.winscreen.render()
             elif self.status == "exit":
                 self.exit()
+
+            self.handle_music()
 
             debugger.show(f"status: {self.status}", 10, 10)
             pygame.display.update()
@@ -55,6 +62,25 @@ class Game:
 
                 if event.key == pygame.K_SPACE and self.status == "main_menu":
                     self.set_game_status("playing")
+
+    def handle_music(self) -> None:
+        if self.status == "main_menu":
+            sounds_manager.play_main_menu_song()
+        elif self.status == "playing" or self.status == "paused":
+            sounds_manager.win_song.stop()
+            sounds_manager.main_menu_song.stop()
+            sounds_manager.gameover_song.stop()
+            sounds_manager.play_playing_song()
+        elif self.status == "win":
+            sounds_manager.playing_song.stop()
+            sounds_manager.play_win_song()
+        elif self.status == "gameover":
+            sounds_manager.playing_song.stop()
+            sounds_manager.play_gameover_song()
+        elif self.status == "restart":
+            sounds_manager.playing_song_played = False
+            sounds_manager.win_song_played = False
+            sounds_manager.gameover_song_played = False
 
     def set_game_status(self, status: str):
         self.status = status

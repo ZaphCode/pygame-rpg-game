@@ -9,9 +9,9 @@ MAIN_FONT_SRC = "./assets/pixel_font.ttf"
 TITLE_FONT_SRC = "./assets/pixel_font_2.ttf"
 
 PLAYER_DEFAULT_STATS = PlayerStats(
-    health=500,
-    speed=3,
-    damage=50
+    health=5000,
+    speed=10,
+    damage=500
 )
 
 ENEMYS = {

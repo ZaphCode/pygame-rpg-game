@@ -14,7 +14,9 @@ from pytmx.util_pygame import load_pygame
 from sprites.hitboxes import Attack, Protection
 
 class Level:
-    def __init__(self, set_game_status_fn) -> None:
+    def __init__(self, player_position, final_position, set_game_status_fn) -> None:
+        self.player_position = player_position
+        self.final_position = final_position
         self.set_game_status = set_game_status_fn
         self.display_surface = pygame.display.get_surface()
         self.visible_camera_sprites = CameraGroup()
@@ -96,6 +98,8 @@ class Level:
     def run(self) -> None:
         if self.player.is_dead:
             self.set_game_status("gameover")
+        if self.player.rect.collidepoint(self.final_position):
+            self.set_game_status("win")
         self.visible_y_sorteed_camera_sprites.update()
         self.visible_camera_sprites.update()
         self.visible_camera_sprites._draw(self.player)

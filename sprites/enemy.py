@@ -4,6 +4,7 @@ from lib.stats import EnemyStats
 from settings import ENEMYS
 from sprites.entity import Entity
 import pygame
+from lib.sounds import sounds_manager
 from sprites.item import Item
 from sprites.player import Player
 from typing import List, Tuple
@@ -96,7 +97,7 @@ class Enemy(Entity):
             if int(self.frame_index) >= len(self.animations[self.status]) - 1:
                 drop = choice(list(self.stats.loot_items))
                 if drop:
-                    if self.is_boss: self.create_item_fn(drop, self.hitbox.center - pygame.math.Vector2(0, 20))
+                    if self.is_boss: self.create_item_fn(drop, self.hitbox.center - pygame.math.Vector2(18, 15))
                     else: self.create_item_fn(drop, self.hitbox.topleft)
                 self.kill()
             return   
@@ -145,13 +146,14 @@ class Enemy(Entity):
     def attack(self, player: Player) -> None:
         if not player.attacked and player.current_health > 0:
             if not self.attacks_protected_by_user:
+                sounds_manager.player_hit.play()
                 player.attacked_time = pygame.time.get_ticks()
                 player.attacked = True
                 player.frame_index = 0
                 player.current_health -= self.stats.damage
                 player.direction = self.last_attack_direction
             else:
-                print("Miss")
+                sounds_manager.block_shield.play()
 
     def update(self) -> None:
         self.get_status()
